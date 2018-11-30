@@ -121,18 +121,20 @@ unsigned int camPointYUniform;
 Point camPoint = { 0, 0 };
 Point targetPoint = camPoint;
 double currentMoveSpeed;
+double currentStep;
 int flags = 0;
 
 class Flags {
 public:
 	static const int Started = 0x1;
 	static const int Paused = 0x2;
+	static const int Scrolling = 0x4;
 };
 
 double Width = 1332;
 double Height = 740;
 
-unsigned int maxIterations = 100;
+unsigned int maxIterations = 1000;
 float zoomSpeed = 1;
 float moveSpeed = 1;
 
@@ -157,6 +159,14 @@ void mouse_pressed(GLFWwindow* window, int button, int action, int mods) {
 			currentMoveSpeed = 0;
 		}
 		flags |= Flags::Started;
+	}
+}
+
+void mouse_scrolled(GLFWwindow* window, double xoff, double yoff) {
+	currentZoom += yoff / 300;
+	currentZoomSpeed = 0;
+	if (yoff < 0) {
+		currentStep = sqrt(pow(targetPoint.X - camPoint.X, 2) + pow(targetPoint.Y - camPoint.Y, 2)) / 1000 * currentMoveSpeed;
 	}
 }
 
@@ -366,6 +376,7 @@ int main()
 
 	glfwSetMouseButtonCallback(currentWindow, mouse_pressed);
 	glfwSetKeyCallback(currentWindow, key_pressed);
+	glfwSetScrollCallback(currentWindow, mouse_scrolled);
 
 	RenderLoop();
 
