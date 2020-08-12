@@ -122,6 +122,7 @@ Point camPoint = { 0, 0 };
 Point targetPoint = camPoint;
 double currentMoveSpeed;
 double currentStep;
+double targetZoom = 0;
 int flags = 0;
 
 class Flags {
@@ -129,12 +130,13 @@ public:
 	static const int Started = 0x1;
 	static const int Paused = 0x2;
 	static const int Scrolling = 0x4;
+	static const int Looping = 0x8;
 };
 
 double Width = 1332;
 double Height = 740;
 
-unsigned int maxIterations = 1000;
+unsigned int maxIterations = 100;
 float zoomSpeed = 1;
 float moveSpeed = 1;
 
@@ -285,6 +287,15 @@ void key_pressed(GLFWwindow* window, int key, int scancode, int action, int mods
 			if (maxIterations > 0) maxIterations -= 1;
 		}
 	}
+	else if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+		if (flags & Flags::Looping) {
+			flags ^= Flags::Looping;
+		}
+		else {
+			targetZoom = currentZoom;
+			flags |= Flags::Looping;
+		}
+	}
 }
 
 void RenderLoop() {
@@ -309,6 +320,13 @@ void RenderLoop() {
 
 		// Poll for and process events
 		glfwPollEvents();
+
+		if (flags & Flags::Looping) {
+			if (currentZoom > targetZoom) {
+				camPoint = { 0, 0 };
+				currentZoom = 0;
+			}
+		}
 
 		Sleep(10);
 	}
